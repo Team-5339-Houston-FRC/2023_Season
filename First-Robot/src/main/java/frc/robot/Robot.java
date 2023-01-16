@@ -10,6 +10,7 @@ import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 
 /**
@@ -52,6 +54,10 @@ public class Robot extends TimedRobot {
         leftEncoderPulseCount, leftEncoderVelocity, leftCountsPerRev, rightEncoderPulseCount, 
         rightEncoderVelocity, rightCountsPerRev;
 
+    // Maps for Comms Diag Screen
+    private GenericEntry statusCAN_BusOffCount, statusCAN_PercentBusUtilization, statusCAN_ReceiveErrorCount,
+        statusCAN_TransmitErrorCount, statusCAN_TXFullCount;
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -66,6 +72,11 @@ public class Robot extends TimedRobot {
     m_rightLeadDrive = new CANSparkMax(1, MotorType.kBrushless);
     m_rightFollowDrive= new CANSparkMax(3, MotorType.kBrushless);
 
+    m_leftLeadDrive.restoreFactoryDefaults();
+    m_leftFollowDrive.restoreFactoryDefaults();
+    m_rightLeadDrive.restoreFactoryDefaults();
+    m_rightFollowDrive.restoreFactoryDefaults();
+
     m_leftFollowDrive.follow(m_leftLeadDrive);
     m_rightFollowDrive.follow(m_rightLeadDrive);
 
@@ -79,8 +90,7 @@ public class Robot extends TimedRobot {
 
     initXboxControllerHMI();
     initNavigationHMI();
-
-
+    initCommsHMI();
   }
 
   /** This function is run once each time the robot enters autonomous mode. */
@@ -95,6 +105,7 @@ public class Robot extends TimedRobot {
   public void autonomousPeriodic() {    
     updateXboxControllerHMI();
     updateNavigationHMI();
+    updateCommsHMI();
   }
 
   /** This function is called once each time the robot enters teleoperated mode. */
@@ -106,6 +117,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     updateXboxControllerHMI();
     updateNavigationHMI();
+    updateCommsHMI();
     m_robotDrive.arcadeDrive(-m_controller.getLeftY() *.7, -m_controller.getLeftX() * .7);
   }
 
@@ -118,41 +130,7 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     updateXboxControllerHMI();
     updateNavigationHMI();
-  }
-
-  private void updateXboxControllerHMI() {
-    jstick1_xaxis.setDouble(m_controller.getLeftX());
-    jstick1_yaxis.setDouble(m_controller.getLeftY());
-    jstick2_xaxis.setDouble(m_controller.getRightX());
-    jstick2_yaxis.setDouble(m_controller.getRightY());
-    jstick1_click.setBoolean(m_controller.getLeftStickButton());
-    jstick2_click.setBoolean(m_controller.getRightStickButton());
-    leftTrigger.setDouble(m_controller.getLeftTriggerAxis());
-    rightTrigger.setDouble(m_controller.getRightTriggerAxis());
-    leftBumper.setBoolean(m_controller.getLeftBumper());
-    rightBumper.setBoolean(m_controller.getRightBumper());
-    xButton.setBoolean(m_controller.getXButton());
-    yButton.setBoolean(m_controller.getYButton());
-    aButton.setBoolean(m_controller.getAButton());
-    bButton.setBoolean(m_controller.getBButton());
-    startButton.setBoolean(m_controller.getStartButton());
-    backButton.setBoolean(m_controller.getBackButton());
-    String strPOV = Integer.toString(m_controller.getPOV());
-    dpadPOV.setString(strPOV + " degrees");
-
-    if(leftRumbleToggle.getBoolean(false) == true){
-      m_controller.setRumble(RumbleType.kLeftRumble, leftRumbleValue.getDouble(0));
-    }
-    else{
-      m_controller.setRumble(RumbleType.kLeftRumble,0);
-    }
-
-    if(rightRumbleToggle.getBoolean(false) == true){
-      m_controller.setRumble(RumbleType.kRightRumble, rightRumbleValue.getDouble(0));
-    }
-    else{
-      m_controller.setRumble(RumbleType.kRightRumble,0);
-    }
+    updateCommsHMI();
   }
 
   private void initXboxControllerHMI() {
@@ -275,6 +253,59 @@ public class Robot extends TimedRobot {
     
   }
 
+  private void initCommsHMI() {
+    ShuffleboardTab commsDiagTab = Shuffleboard.getTab("COMMS Diag");
+
+    ShuffleboardLayout statusCANLayout = commsDiagTab.getLayout("CAN Status", "Grid Layout").withPosition(0, 0)
+            .withSize(2, 3)
+            .withProperties(Map.of("number of columns", 1, "number of rows", 5, "Label position", "LEFT"));
+    statusCAN_BusOffCount = statusCANLayout.add("Off Cnt (S)", 0).withWidget(BuiltInWidgets.kTextView)
+            .withPosition(0, 0).getEntry();
+    statusCAN_PercentBusUtilization = statusCANLayout.add("% Util.", 0).withWidget(BuiltInWidgets.kTextView)
+            .withPosition(0, 0).getEntry();
+    statusCAN_ReceiveErrorCount = statusCANLayout.add("RX Error Cnt", 0).withWidget(BuiltInWidgets.kTextView)
+            .withPosition(0, 0).getEntry();
+    statusCAN_TransmitErrorCount = statusCANLayout.add("TX Error Cnt", 0).withWidget(BuiltInWidgets.kTextView)
+            .withPosition(0, 0).getEntry();
+    statusCAN_TXFullCount = statusCANLayout.add("TX Full Cnt", 0).withWidget(BuiltInWidgets.kTextView)
+            .withPosition(0, 0).getEntry();
+  }
+
+  private void updateXboxControllerHMI() {
+    jstick1_xaxis.setDouble(m_controller.getLeftX());
+    jstick1_yaxis.setDouble(m_controller.getLeftY());
+    jstick2_xaxis.setDouble(m_controller.getRightX());
+    jstick2_yaxis.setDouble(m_controller.getRightY());
+    jstick1_click.setBoolean(m_controller.getLeftStickButton());
+    jstick2_click.setBoolean(m_controller.getRightStickButton());
+    leftTrigger.setDouble(m_controller.getLeftTriggerAxis());
+    rightTrigger.setDouble(m_controller.getRightTriggerAxis());
+    leftBumper.setBoolean(m_controller.getLeftBumper());
+    rightBumper.setBoolean(m_controller.getRightBumper());
+    xButton.setBoolean(m_controller.getXButton());
+    yButton.setBoolean(m_controller.getYButton());
+    aButton.setBoolean(m_controller.getAButton());
+    bButton.setBoolean(m_controller.getBButton());
+    startButton.setBoolean(m_controller.getStartButton());
+    backButton.setBoolean(m_controller.getBackButton());
+    String strPOV = Integer.toString(m_controller.getPOV());
+    dpadPOV.setString(strPOV + " degrees");
+
+    if(leftRumbleToggle.getBoolean(false) == true){
+      m_controller.setRumble(RumbleType.kLeftRumble, leftRumbleValue.getDouble(0));
+    }
+    else{
+      m_controller.setRumble(RumbleType.kLeftRumble,0);
+    }
+
+    if(rightRumbleToggle.getBoolean(false) == true){
+      m_controller.setRumble(RumbleType.kRightRumble, rightRumbleValue.getDouble(0));
+    }
+    else{
+      m_controller.setRumble(RumbleType.kRightRumble,0);
+    }
+  }
+ 
   private void updateNavigationHMI() {
     ahrsConnected.setBoolean(ahrs.isConnected());
     ahrsCalibrating.setBoolean(ahrs.isCalibrating());
@@ -303,5 +334,14 @@ public class Robot extends TimedRobot {
     rightEncoderPulseCount.setString(m_rightLeadDrive.getEncoder().getPosition() + "");
     rightEncoderVelocity.setString(m_rightLeadDrive.getEncoder().getVelocity() + "");
     rightCountsPerRev.setString(m_rightLeadDrive.getEncoder().getCountsPerRevolution() + "");      
+  }
+
+  private void updateCommsHMI() {
+    CANStatus statusCAN = RobotController.getCANStatus();
+    statusCAN_BusOffCount.setDouble(statusCAN.busOffCount);
+    statusCAN_PercentBusUtilization.setDouble(statusCAN.percentBusUtilization);
+    statusCAN_ReceiveErrorCount.setDouble(statusCAN.receiveErrorCount);
+    statusCAN_TransmitErrorCount.setDouble(statusCAN.transmitErrorCount);
+    statusCAN_TXFullCount.setDouble(statusCAN.txFullCount);
   }
 }

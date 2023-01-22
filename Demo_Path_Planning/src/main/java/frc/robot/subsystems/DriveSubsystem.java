@@ -16,7 +16,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.networktables.GenericEntry;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -28,16 +27,15 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class DriveSubsystem extends SubsystemBase {
   // The motors on the left side of the drive.
-  private final CANSparkMax m_leftLeadMotor = 
-    new CANSparkMax(DriveConstants.kLeftLeadMotorCANID, MotorType.kBrushless);
-  private final CANSparkMax m_leftFollowMotor = 
-    new CANSparkMax(DriveConstants.kLeftFollowMotorCANID, MotorType.kBrushless);
+  private final CANSparkMax m_leftLeadMotor = new CANSparkMax(DriveConstants.kLeftLeadMotorCANID, MotorType.kBrushless);
+  private final CANSparkMax m_leftFollowMotor = new CANSparkMax(DriveConstants.kLeftFollowMotorCANID,
+      MotorType.kBrushless);
 
   // The motors on the right side of the drive.
-  private final CANSparkMax m_rightLeadMotor = 
-    new CANSparkMax(DriveConstants.kRightLeadMotorCANID, MotorType.kBrushless);
-  private final CANSparkMax m_rightFollowMotor = 
-    new CANSparkMax(DriveConstants.kRightFollowMotorCANID, MotorType.kBrushless);
+  private final CANSparkMax m_rightLeadMotor = new CANSparkMax(DriveConstants.kRightLeadMotorCANID,
+      MotorType.kBrushless);
+  private final CANSparkMax m_rightFollowMotor = new CANSparkMax(DriveConstants.kRightFollowMotorCANID,
+      MotorType.kBrushless);
 
   // The robot's drive
   private DifferentialDrive m_drive;
@@ -57,8 +55,8 @@ public class DriveSubsystem extends SubsystemBase {
   private final DifferentialDriveOdometry m_odometry;
 
   private GenericEntry leftEncoderPulseCount, rightEncoderPulseCount, averageEncoderPulseCount,
-    yawDegrees, pitchDegrees, rollDegrees, rotation2D, turnRate, leftMotorVoltage, rightMotorVoltage, 
-    leftWheelSpeed, rightWheelSpeed, positionRotation, positionX, positionY;
+      yawDegrees, pitchDegrees, rollDegrees, rotation2D, turnRate, leftMotorVoltage, rightMotorVoltage,
+      leftWheelSpeed, rightWheelSpeed, positionRotation, positionX, positionY;
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem(AHRSSubsystem ahrs) {
@@ -88,8 +86,8 @@ public class DriveSubsystem extends SubsystemBase {
     m_leftFollowMotor.setInverted(true);
 
     // Sets the distance per pulse for the encoders
-    //m_leftEncoder.setDistancePerPulse(DriveConstants.kEncoderDistancePerPulse);
-    //m_rightEncoder.setDistancePerPulse(DriveConstants.kEncoderDistancePerPulse);
+    // m_leftEncoder.setDistancePerPulse(DriveConstants.kEncoderDistancePerPulse);
+    // m_rightEncoder.setDistancePerPulse(DriveConstants.kEncoderDistancePerPulse);
 
     m_rightEncoder.setPositionConversionFactor(DriveConstants.kEncoderDistancePerPulse);
     m_leftEncoder.setPositionConversionFactor(DriveConstants.kEncoderDistancePerPulse);
@@ -101,9 +99,8 @@ public class DriveSubsystem extends SubsystemBase {
     resetEncoders();
     resetYaw();
 
-    m_odometry =
-        new DifferentialDriveOdometry(
-            m_ahrs.getRotation2d(), this.getLeftEncoderPosition(), this.getRightEncoderPosition());
+    m_odometry = new DifferentialDriveOdometry(
+        m_ahrs.getRotation2d(), this.getLeftEncoderPosition(), this.getRightEncoderPosition());
     m_leftMotorVoltage = 0;
     m_rightMotorVoltage = 0;
     initHMI();
@@ -113,9 +110,8 @@ public class DriveSubsystem extends SubsystemBase {
   public void periodic() {
     // Update the odometry in the periodic block
     m_odometry.update(
-        m_ahrs.getRotation2d(),this.getLeftEncoderPosition(), this.getRightEncoderPosition());
+        m_ahrs.getRotation2d(), this.getLeftEncoderPosition(), this.getRightEncoderPosition());
 
-    
     updateHMI();
   }
 
@@ -164,7 +160,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @param rot the commanded rotation
    */
   public void arcadeDrive(double fwd, double rot) {
-      m_drive.arcadeDrive(fwd, rot);
+    m_drive.arcadeDrive(fwd, rot);
   }
 
   public void autoBalance() {
@@ -172,31 +168,28 @@ public class DriveSubsystem extends SubsystemBase {
     double fwd = 0;
     double rot = 0;
 
-    //System.out.println("test");
+    // System.out.println("test");
 
     if (Math.abs(pitch) >= Math.abs(AutoConstants.kOffBalanceAngleThresholdDegrees)) {
       double pitchAngleRadians = pitch * (Math.PI / 180.0);
       if (fwd >= 0)
-      fwd = Math.sin(pitchAngleRadians) * 1.5;
-      //System.out.println("test1");
-    }
-    else {
+        fwd = Math.sin(pitchAngleRadians) * 1.5;
+      // System.out.println("test1");
+    } else {
       fwd = 0;
       rot = 0;
     }
 
-    
-
-    //System.out.println("test2 fwd:" + fwd + " rot:" + rot);
+    // System.out.println("test2 fwd:" + fwd + " rot:" + rot);
     m_drive.arcadeDrive(rot, fwd);
-    //System.out.println("test3");
+    // System.out.println("test3");
 
   }
 
   /**
    * Controls the left and right sides of the drive directly with voltages.
    *
-   * @param leftVolts the commanded left output
+   * @param leftVolts  the commanded left output
    * @param rightVolts the commanded right output
    */
   public void tankDriveVolts(double leftVolts, double rightVolts) {
@@ -241,7 +234,8 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   /**
-   * Sets the max output of the drive. Useful for scaling the drive to drive more slowly.
+   * Sets the max output of the drive. Useful for scaling the drive to drive more
+   * slowly.
    *
    * @param maxOutput the maximum output to which the drive will be constrained
    */
@@ -287,7 +281,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The turn rate of the robot, in degrees per second
    */
   public double getTurnRate() {
-    return -m_ahrs.getRate();
+    return m_ahrs.getRate();
   }
 
   public void initHMI() {
@@ -301,25 +295,33 @@ public class DriveSubsystem extends SubsystemBase {
     rollDegrees = gyroLayout.add("Roll", "").withWidget(BuiltInWidgets.kTextView).withPosition(1, 1).getEntry();
 
     ShuffleboardLayout encoderLayout = driveDiagTab.getLayout("Encoders", "Grid Layout").withPosition(0, 2)
-      .withSize(3, 1).withProperties(Map.of("number of columns", 3, "number of rows", 1));
-    leftEncoderPulseCount = encoderLayout.add("Left Pulse Count", "").withWidget(BuiltInWidgets.kTextView).withPosition(0, 0).getEntry();
-    rightEncoderPulseCount = encoderLayout.add("Right Pulse Count", "").withWidget(BuiltInWidgets.kTextView).withPosition(1, 0).getEntry();
-    averageEncoderPulseCount = encoderLayout.add("Average Pulse Count", "").withWidget(BuiltInWidgets.kTextView).withPosition(2, 0).getEntry();
-  
+        .withSize(3, 1).withProperties(Map.of("number of columns", 3, "number of rows", 1));
+    leftEncoderPulseCount = encoderLayout.add("Left Pulse Count", "").withWidget(BuiltInWidgets.kTextView)
+        .withPosition(0, 0).getEntry();
+    rightEncoderPulseCount = encoderLayout.add("Right Pulse Count", "").withWidget(BuiltInWidgets.kTextView)
+        .withPosition(1, 0).getEntry();
+    averageEncoderPulseCount = encoderLayout.add("Average Pulse Count", "").withWidget(BuiltInWidgets.kTextView)
+        .withPosition(2, 0).getEntry();
+
     ShuffleboardLayout motorVoltagesLayout = driveDiagTab.getLayout("Motor Voltages", "Grid Layout").withPosition(0, 3)
-      .withSize(2, 1).withProperties(Map.of("number of columns", 2, "number of rows", 1));
-    leftMotorVoltage = motorVoltagesLayout.add("Left Voltage", "").withWidget(BuiltInWidgets.kTextView).withPosition(0, 0).getEntry();
-    rightMotorVoltage = motorVoltagesLayout.add("Right Voltage", "").withWidget(BuiltInWidgets.kTextView).withPosition(1, 0).getEntry();
+        .withSize(2, 1).withProperties(Map.of("number of columns", 2, "number of rows", 1));
+    leftMotorVoltage = motorVoltagesLayout.add("Left Voltage", "").withWidget(BuiltInWidgets.kTextView)
+        .withPosition(0, 0).getEntry();
+    rightMotorVoltage = motorVoltagesLayout.add("Right Voltage", "").withWidget(BuiltInWidgets.kTextView)
+        .withPosition(1, 0).getEntry();
 
     ShuffleboardLayout ratesLayout = driveDiagTab.getLayout("Drive Rates", "Grid Layout").withPosition(2, 0)
-      .withSize(3, 1).withProperties(Map.of("number of columns", 3, "number of rows", 1));
+        .withSize(3, 1).withProperties(Map.of("number of columns", 3, "number of rows", 1));
     turnRate = ratesLayout.add("Turn Rate", "").withWidget(BuiltInWidgets.kTextView).withPosition(0, 0).getEntry();
-    leftWheelSpeed = ratesLayout.add("Left Wheel Speed", "").withWidget(BuiltInWidgets.kTextView).withPosition(1, 0).getEntry();
-    rightWheelSpeed = ratesLayout.add("Right Wheel Speed", "").withWidget(BuiltInWidgets.kTextView).withPosition(2, 0).getEntry();
+    leftWheelSpeed = ratesLayout.add("Left Wheel Speed", "").withWidget(BuiltInWidgets.kTextView).withPosition(1, 0)
+        .getEntry();
+    rightWheelSpeed = ratesLayout.add("Right Wheel Speed", "").withWidget(BuiltInWidgets.kTextView).withPosition(2, 0)
+        .getEntry();
 
     ShuffleboardLayout positionLayout = driveDiagTab.getLayout("Position", "Grid Layout").withPosition(2, 1)
-      .withSize(3, 1).withProperties(Map.of("number of columns", 3, "number of rows", 1));
-    positionRotation = positionLayout.add("Rotation", "").withWidget(BuiltInWidgets.kTextView).withPosition(0, 0).getEntry();
+        .withSize(3, 1).withProperties(Map.of("number of columns", 3, "number of rows", 1));
+    positionRotation = positionLayout.add("Rotation", "").withWidget(BuiltInWidgets.kTextView).withPosition(0, 0)
+        .getEntry();
     positionX = positionLayout.add("X", "").withWidget(BuiltInWidgets.kTextView).withPosition(1, 0).getEntry();
     positionY = positionLayout.add("Y", "").withWidget(BuiltInWidgets.kTextView).withPosition(2, 0).getEntry();
 
@@ -327,26 +329,26 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void updateHMI() {
 
-    rotation2D.setString(this.m_ahrs.getRotation2d().getDegrees() + " deg" );
-    yawDegrees.setString(this.getYaw() + " deg");
-    pitchDegrees.setString(this.getPitch() + " deg");
-    rollDegrees.setString(this.getRoll() + " deg");
+    String.format("%.2f", 10.0 / 3.0);
+    rotation2D.setString(String.format("%.2f", this.m_ahrs.getRotation2d().getDegrees() + " deg"));
+    yawDegrees.setString(String.format("%.2f", this.getYaw() + " deg"));
+    pitchDegrees.setString(String.format("%.2f", this.getPitch() + " deg"));
+    rollDegrees.setString(String.format("%.2f", this.getRoll() + " deg"));
 
-    leftEncoderPulseCount.setString(this.getLeftEncoderPosition() + " p");
-    rightEncoderPulseCount.setString(this.getRightEncoderPosition() + " p");
-    averageEncoderPulseCount.setString(this.getAverageEncoderDistance() + " p");
+    leftEncoderPulseCount.setString(String.format("%.3f", this.getLeftEncoderPosition() + " p"));
+    rightEncoderPulseCount.setString(String.format("%.3f", this.getRightEncoderPosition() + " p"));
+    averageEncoderPulseCount.setString(String.format("%.3f", this.getAverageEncoderDistance() + " p"));
 
-    leftMotorVoltage.setString(this.m_leftMotorVoltage + " V");
-    rightMotorVoltage.setString(this.m_leftMotorVoltage + " V");
+    leftMotorVoltage.setString(String.format("%.3f", this.m_leftMotorVoltage + " V"));
+    rightMotorVoltage.setString(String.format("%.3f", this.m_leftMotorVoltage + " V"));
 
-    turnRate.setString(this.getTurnRate() + " deg//s");
-    leftWheelSpeed.setString(this.getWheelSpeeds().leftMetersPerSecond + " m//s");
-    rightWheelSpeed.setString(this.getWheelSpeeds().rightMetersPerSecond + " m//s");
+    turnRate.setString(String.format("%.3f", this.getTurnRate() + " deg//s"));
+    leftWheelSpeed.setString(String.format("%.3f", this.getWheelSpeeds().leftMetersPerSecond + " m//s"));
+    rightWheelSpeed.setString(String.format("%.3f", this.getWheelSpeeds().rightMetersPerSecond + " m//s"));
 
-    positionRotation.setString(this.getPose().getRotation().getDegrees() + " deg");
-    positionX.setString(this.getPose().getX() + " m");
-    positionY.setString(this.getPose().getY() + " m");
+    positionRotation.setString(String.format("%.2f", this.getPose().getRotation().getDegrees() + " deg"));
+    positionX.setString(String.format("%.3f", this.getPose().getX() + " m"));
+    positionY.setString(String.format("%.3f", this.getPose().getY() + " m"));
 
-    
   }
 }

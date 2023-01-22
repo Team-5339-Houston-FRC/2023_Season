@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.SPI;
 
-
 public class AHRSSubsystem extends SubsystemBase {
 
   // Maps for Navigation Diag Screen
@@ -36,7 +35,7 @@ public class AHRSSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 
-  public AHRS getAHRS(){
+  public AHRS getAHRS() {
     return m_ahrs;
   }
 
@@ -73,10 +72,12 @@ public class AHRSSubsystem extends SubsystemBase {
 
     velocityX = driveDiagTab.add("Velocity X", "").withWidget(BuiltInWidgets.kTextView).withPosition(2, 2).getEntry();
     velocityY = driveDiagTab.add("Velocity Y", "").withWidget(BuiltInWidgets.kTextView).withPosition(3, 2).getEntry();
-    
-    ahrsAccelX = driveDiagTab.add("World Linear Accel X", "").withWidget(BuiltInWidgets.kTextView).withPosition(2, 1).getEntry();
-    ahrsAccelY = driveDiagTab.add("World Linear Accel Y", "").withWidget(BuiltInWidgets.kTextView).withPosition(3, 1).getEntry();
-    
+
+    ahrsAccelX = driveDiagTab.add("World Linear Accel X", "").withWidget(BuiltInWidgets.kTextView).withPosition(2, 1)
+        .getEntry();
+    ahrsAccelY = driveDiagTab.add("World Linear Accel Y", "").withWidget(BuiltInWidgets.kTextView).withPosition(3, 1)
+        .getEntry();
+
   }
 
   private void updateHMI() {
@@ -99,6 +100,6 @@ public class AHRSSubsystem extends SubsystemBase {
 
     velocityX.setString(m_ahrs.getVelocityX() + "");
     velocityY.setString(m_ahrs.getVelocityX() + "");
-   
+
   }
 }

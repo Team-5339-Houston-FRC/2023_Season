@@ -39,112 +39,116 @@ import java.util.List;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-    // The robot's subsystems
-    private final XboxControllerSubsystem m_driverControllerSubsystem = new XboxControllerSubsystem();
-    private final AHRSSubsystem m_ahrsSubsystem = new AHRSSubsystem();
-    private final DriveSubsystem m_robotDriveSubSystem = new DriveSubsystem(m_ahrsSubsystem);
+        // The robot's subsystems
+        private final XboxControllerSubsystem m_driverControllerSubsystem = new XboxControllerSubsystem();
+        private final AHRSSubsystem m_ahrsSubsystem = new AHRSSubsystem();
+        private final DriveSubsystem m_robotDriveSubSystem = new DriveSubsystem(m_ahrsSubsystem);
 
-    private final CommandXboxController m_driverCommandController = m_driverControllerSubsystem
-            .getCommandXboxController();
+        private final CommandXboxController m_driverCommandController = m_driverControllerSubsystem
+                        .getCommandXboxController();
 
-    /**
-     * The container for the robot. Contains subsystems, OI devices, and commands.
-     */
-    public RobotContainer() {
-        // Configure the button bindings
-        configureButtonBindings();
+        /**
+         * The container for the robot. Contains subsystems, OI devices, and commands.
+         */
+        public RobotContainer() {
+                // Configure the button bindings
+                configureButtonBindings();
+                // Set the max output percent for the motors
+                m_robotDriveSubSystem.setMaxOutput(0.7);
 
-        // Configure default commands
-        // Set the default drive command to single-stick arcade drive
-        m_robotDriveSubSystem.setDefaultCommand(
-                // A single-stick arcade command, controlled by the left stick.
-                new RunCommand(
-                        () -> m_robotDriveSubSystem.arcadeDrive(
-                                m_driverCommandController.getLeftX() * -1, m_driverCommandController.getLeftY()),
-                        m_robotDriveSubSystem));
-    }
+                // Configure default commands
+                // Set the default drive command to single-stick arcade drive
+                m_robotDriveSubSystem.setDefaultCommand(
+                                // A single-stick arcade command, controlled by the left stick.
+                                new RunCommand(
+                                                () -> m_robotDriveSubSystem.arcadeDrive(
+                                                                m_driverCommandController.getLeftX() * -1, // reverse the Left X axis
+                                                                m_driverCommandController.getLeftY()),
+                                                m_robotDriveSubSystem));
+        }
 
-    /**
-     * Use this method to define your button->command mappings. Buttons can be
-     * created by
-     * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its
-     * subclasses ({@link
-     * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling
-     * passing it to a
-     * {@link JoystickButton}.
-     */
-    private void configureButtonBindings() {
-        // Drive at half speed when the right bumper is held
-        m_driverCommandController.rightBumper()
-                .onTrue(new InstantCommand(() -> m_robotDriveSubSystem.setMaxOutput(0.4)))
-                .onFalse(new InstantCommand(() -> m_robotDriveSubSystem.setMaxOutput(0.7)));
+        /**
+         * Use this method to define your button->command mappings. Buttons can be
+         * created by
+         * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its
+         * subclasses ({@link
+         * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling
+         * passing it to a
+         * {@link JoystickButton}.
+         */
+        private void configureButtonBindings() {
+                // Drive at half speed when the right bumper is held
+                m_driverCommandController.rightBumper()
+                                .onTrue(new InstantCommand(() -> m_robotDriveSubSystem.setMaxOutput(0.4)))
+                                .onFalse(new InstantCommand(() -> m_robotDriveSubSystem.setMaxOutput(0.7)));
 
-        // Auto-Balance when the left bumper is held
-        m_driverCommandController.leftBumper()
-                .whileTrue(new RunCommand(
-                        () -> m_robotDriveSubSystem.autoBalance(),
-                        m_robotDriveSubSystem));
+                // Auto-Balance when the left bumper is held
+                m_driverCommandController.leftBumper()
+                                .whileTrue(new RunCommand(
+                                                () -> m_robotDriveSubSystem.autoBalance(),
+                                                m_robotDriveSubSystem));
 
-        m_driverCommandController.x()
-                .onTrue(new InstantCommand(
-                        () -> m_robotDriveSubSystem.resetOdometry(new Pose2d(0, 0, new Rotation2d(0)))));
-    }
+                m_driverCommandController.x()
+                                .onTrue(new InstantCommand(
+                                                () -> m_robotDriveSubSystem
+                                                                .resetOdometry(new Pose2d(0, 0, new Rotation2d(0)))));
+        }
 
-    /**
-     * Use this to pass the autonomous command to the main {@link Robot} class.
-     *
-     * @return the command to run in autonomous
-     */
-    public Command getAutonomousCommand() {
-        // Create a voltage constraint to ensure we don't accelerate too fast
-        var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
-                new SimpleMotorFeedforward(
-                        DriveConstants.ksVolts,
-                        DriveConstants.kvVoltSecondsPerMeter,
-                        DriveConstants.kaVoltSecondsSquaredPerMeter),
-                DriveConstants.kDriveKinematics,
-                6);
+        /**
+         * Use this to pass the autonomous command to the main {@link Robot} class.
+         *
+         * @return the command to run in autonomous
+         */
+        public Command getAutonomousCommand() {
+                // Create a voltage constraint to ensure we don't accelerate too fast
+                var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
+                                new SimpleMotorFeedforward(
+                                                DriveConstants.ksVolts,
+                                                DriveConstants.kvVoltSecondsPerMeter,
+                                                DriveConstants.kaVoltSecondsSquaredPerMeter),
+                                DriveConstants.kDriveKinematics,
+                                6);
 
-        // Create config for trajectory
-        TrajectoryConfig config = new TrajectoryConfig(
-                AutoConstants.kMaxSpeedMetersPerSecond,
-                AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-                // Add kinematics to ensure max speed is actually obeyed
-                .setKinematics(DriveConstants.kDriveKinematics)
-                // Apply the voltage constraint
-                .addConstraint(autoVoltageConstraint);
+                // Create config for trajectory
+                TrajectoryConfig config = new TrajectoryConfig(
+                                AutoConstants.kMaxSpeedMetersPerSecond,
+                                AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+                                // Add kinematics to ensure max speed is actually obeyed
+                                .setKinematics(DriveConstants.kDriveKinematics)
+                                // Apply the voltage constraint
+                                .addConstraint(autoVoltageConstraint);
 
-        // An example trajectory to follow. All units in meters.
-        Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-                // Start at the origin facing the +X direction
-                new Pose2d(0, 0, new Rotation2d(0)),
-                // Pass through these two interior waypoints, making an 's' curve path
-                List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-                // End 3 meters straight ahead of where we started, facing forward
-                new Pose2d(3, 0, new Rotation2d(0)),
-                // Pass config
-                config);
+                // An example trajectory to follow. All units in meters.
+                Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+                                // Start at the origin facing the +X direction
+                                new Pose2d(0, 0, new Rotation2d(0)),
+                                // Pass through these two interior waypoints, making an 's' curve path
+                                List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
+                                // End 3 meters straight ahead of where we started, facing forward
+                                new Pose2d(3, 0, new Rotation2d(0)),
+                                // Pass config
+                                config);
 
-        RamseteCommand ramseteCommand = new RamseteCommand(
-                exampleTrajectory,
-                m_robotDriveSubSystem::getPose,
-                new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-                new SimpleMotorFeedforward(
-                        DriveConstants.ksVolts,
-                        DriveConstants.kvVoltSecondsPerMeter,
-                        DriveConstants.kaVoltSecondsSquaredPerMeter),
-                DriveConstants.kDriveKinematics,
-                m_robotDriveSubSystem::getWheelSpeeds,
-                new PIDController(DriveConstants.kPDriveVel, 0, 0),
-                new PIDController(DriveConstants.kPDriveVel, 0, 0),
-                // RamseteCommand passes volts to the callback
-                m_robotDriveSubSystem::tankDriveVolts,
-                m_robotDriveSubSystem);
+                RamseteCommand ramseteCommand = new RamseteCommand(
+                                exampleTrajectory,
+                                m_robotDriveSubSystem::getPose,
+                                new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+                                new SimpleMotorFeedforward(
+                                                DriveConstants.ksVolts,
+                                                DriveConstants.kvVoltSecondsPerMeter,
+                                                DriveConstants.kaVoltSecondsSquaredPerMeter),
+                                DriveConstants.kDriveKinematics,
+                                m_robotDriveSubSystem::getWheelSpeeds,
+                                new PIDController(DriveConstants.kPDriveVel, 0, 0),
+                                new PIDController(DriveConstants.kPDriveVel, 0, 0),
+                                // RamseteCommand passes volts to the callback
+                                m_robotDriveSubSystem::tankDriveVolts,
+                                m_robotDriveSubSystem);
 
-        // Reset odometry to the starting pose of the trajectory.
-        m_robotDriveSubSystem.resetOdometry(exampleTrajectory.getInitialPose());
+                // Reset odometry to the starting pose of the trajectory.
+                m_robotDriveSubSystem.resetOdometry(exampleTrajectory.getInitialPose());
 
-        // Run path following command, then stop at the end.
-        return ramseteCommand.andThen(() -> m_robotDriveSubSystem.tankDriveVolts(0, 0));
-    }
+                // Run path following command, then stop at the end.
+                return ramseteCommand.andThen(() -> m_robotDriveSubSystem.tankDriveVolts(0, 0));
+        }
 }

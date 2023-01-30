@@ -118,7 +118,7 @@ public class Robot extends TimedRobot {
     updateXboxControllerHMI();
     updateNavigationHMI();
     updateCommsHMI();
-    m_robotDrive.arcadeDrive(-m_controller.getLeftY() *.7, -m_controller.getLeftX() * .7);
+    m_robotDrive.arcadeDrive(m_controller.getLeftX() *.7, m_controller.getLeftY() * .7);
   }
 
   /** This function is called once each time the robot enters test mode. */

@@ -12,6 +12,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
@@ -57,6 +58,9 @@ public class DriveSubsystem extends SubsystemBase {
   private GenericEntry leftEncoderPulseCount, rightEncoderPulseCount, averageEncoderPulseCount,
       yawDegrees, pitchDegrees, rollDegrees, rotation2D, turnRate, leftMotorVoltage, rightMotorVoltage,
       leftWheelSpeed, rightWheelSpeed, positionRotation, positionX, positionY;
+
+
+  private PIDController m_autoBalancePIDController;
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem(AHRSSubsystem ahrs) {
@@ -184,6 +188,18 @@ public class DriveSubsystem extends SubsystemBase {
     m_drive.arcadeDrive(rot, fwd);
     // System.out.println("test3");
 
+  }
+
+  public void autoBalancePIDInit() {
+    m_autoBalancePIDController = new PIDController(0,0,0);
+    m_autoBalancePIDController.setTolerance(1);
+    m_autoBalancePIDController.enableContinuousInput(-180, 180);
+    m_autoBalancePIDController.reset();
+  }
+
+  public void autoBalancePIDLoop() {
+    double tempSpeedOutput = m_autoBalancePIDController.calculate(this.getPitch(), 0);
+    m_drive.arcadeDrive(0, tempSpeedOutput);
   }
 
   /**
@@ -329,26 +345,25 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void updateHMI() {
 
-    String.format("%.2f", 10.0 / 3.0);
-    rotation2D.setString(String.format("%.2f", this.m_ahrs.getRotation2d().getDegrees() + " deg"));
-    yawDegrees.setString(String.format("%.2f", this.getYaw() + " deg"));
-    pitchDegrees.setString(String.format("%.2f", this.getPitch() + " deg"));
-    rollDegrees.setString(String.format("%.2f", this.getRoll() + " deg"));
+    rotation2D.setString(String.format("%.2f", this.m_ahrs.getRotation2d().getDegrees()) + " deg");
+    yawDegrees.setString(String.format("%.2f", this.getYaw()) + " deg");
+    pitchDegrees.setString(String.format("%.2f", this.getPitch()) + " deg");
+    rollDegrees.setString(String.format("%.2f", this.getRoll()) + " deg");
 
-    leftEncoderPulseCount.setString(String.format("%.3f", this.getLeftEncoderPosition() + " p"));
-    rightEncoderPulseCount.setString(String.format("%.3f", this.getRightEncoderPosition() + " p"));
-    averageEncoderPulseCount.setString(String.format("%.3f", this.getAverageEncoderDistance() + " p"));
+    leftEncoderPulseCount.setString(String.format("%.3f", this.getLeftEncoderPosition()) + " p");
+    rightEncoderPulseCount.setString(String.format("%.3f", this.getRightEncoderPosition()) + " p");
+    averageEncoderPulseCount.setString(String.format("%.3f", this.getAverageEncoderDistance()) + " p");
 
-    leftMotorVoltage.setString(String.format("%.3f", this.m_leftMotorVoltage + " V"));
-    rightMotorVoltage.setString(String.format("%.3f", this.m_leftMotorVoltage + " V"));
+    leftMotorVoltage.setString(String.format("%.3f", this.m_leftMotorVoltage) + " V");
+    rightMotorVoltage.setString(String.format("%.3f", this.m_leftMotorVoltage) + " V");
 
-    turnRate.setString(String.format("%.3f", this.getTurnRate() + " deg//s"));
-    leftWheelSpeed.setString(String.format("%.3f", this.getWheelSpeeds().leftMetersPerSecond + " m//s"));
-    rightWheelSpeed.setString(String.format("%.3f", this.getWheelSpeeds().rightMetersPerSecond + " m//s"));
+    turnRate.setString(String.format("%.3f", this.getTurnRate()) + " deg//s");
+    leftWheelSpeed.setString(String.format("%.3f", this.getWheelSpeeds().leftMetersPerSecond) + " m//s");
+    rightWheelSpeed.setString(String.format("%.3f", this.getWheelSpeeds().rightMetersPerSecond) + " m//s");
 
-    positionRotation.setString(String.format("%.2f", this.getPose().getRotation().getDegrees() + " deg"));
-    positionX.setString(String.format("%.3f", this.getPose().getX() + " m"));
-    positionY.setString(String.format("%.3f", this.getPose().getY() + " m"));
+    positionRotation.setString(String.format("%.2f", this.getPose().getRotation().getDegrees()) + " deg");
+    positionX.setString(String.format("%.3f", this.getPose().getX()) + " m");
+    positionY.setString(String.format("%.3f", this.getPose().getY()) + " m");
 
   }
 }

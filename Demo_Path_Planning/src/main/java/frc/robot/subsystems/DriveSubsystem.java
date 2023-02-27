@@ -72,10 +72,10 @@ public class DriveSubsystem extends SubsystemBase {
     m_rightLeadMotor.restoreFactoryDefaults();
     m_rightFollowMotor.restoreFactoryDefaults();
 
-    m_leftLeadMotor.setIdleMode(IdleMode.kBrake);
-    m_leftFollowMotor.setIdleMode(IdleMode.kBrake);
-    m_rightLeadMotor.setIdleMode(IdleMode.kBrake);
-    m_rightFollowMotor.setIdleMode(IdleMode.kBrake);
+    m_leftLeadMotor.setIdleMode(IdleMode.kCoast);
+    m_leftFollowMotor.setIdleMode(IdleMode.kCoast);
+    m_rightLeadMotor.setIdleMode(IdleMode.kCoast);
+    m_rightFollowMotor.setIdleMode(IdleMode.kCoast);
 
     m_leftFollowMotor.follow(m_leftLeadMotor);
     m_rightFollowMotor.follow(m_rightLeadMotor);
@@ -86,17 +86,17 @@ public class DriveSubsystem extends SubsystemBase {
     m_rightLeadMotor.setInverted(true);
     m_rightFollowMotor.setInverted(true);
 
-    m_leftLeadMotor.setInverted(true);
-    m_leftFollowMotor.setInverted(true);
+    m_leftLeadMotor.setInverted(false);
+    m_leftFollowMotor.setInverted(false);
 
     // Sets the distance per pulse for the encoders
     // m_leftEncoder.setDistancePerPulse(DriveConstants.kEncoderDistancePerPulse);
     // m_rightEncoder.setDistancePerPulse(DriveConstants.kEncoderDistancePerPulse);
 
-    m_rightEncoder.setPositionConversionFactor(DriveConstants.kEncoderDistancePerPulse);
-    m_leftEncoder.setPositionConversionFactor(DriveConstants.kEncoderDistancePerPulse);
-    m_rightEncoder.setVelocityConversionFactor(DriveConstants.kEncoderDistancePerPulse / 60);
-    m_leftEncoder.setVelocityConversionFactor(DriveConstants.kEncoderDistancePerPulse / 60);
+    m_rightEncoder.setPositionConversionFactor(1);
+    m_leftEncoder.setPositionConversionFactor(1);
+    m_rightEncoder.setVelocityConversionFactor(1);
+    m_leftEncoder.setVelocityConversionFactor(1);
 
     m_drive = new DifferentialDrive(m_leftLeadMotor, m_rightLeadMotor);
 
@@ -120,11 +120,11 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   private double getLeftEncoderPosition() {
-    return m_leftEncoder.getPosition();
+    return m_leftEncoder.getPosition() * DriveConstants.kEncoderDistancePerPulse;
   }
 
   private double getRightEncoderPosition() {
-    return m_leftEncoder.getPosition();
+    return m_rightEncoder.getPosition() * DriveConstants.kEncoderDistancePerPulse;
   }
 
   /**
@@ -142,7 +142,8 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The current wheel speeds.
    */
   public DifferentialDriveWheelSpeeds getWheelSpeeds() {
-    return new DifferentialDriveWheelSpeeds(m_leftEncoder.getVelocity(), m_rightEncoder.getVelocity());
+    return new DifferentialDriveWheelSpeeds((m_leftEncoder.getVelocity() * DriveConstants.kEncoderDistancePerPulse) / 60,
+        (m_rightEncoder.getVelocity() * DriveConstants.kEncoderDistancePerPulse) / 60);
   }
 
   /**
@@ -177,7 +178,7 @@ public class DriveSubsystem extends SubsystemBase {
     if (Math.abs(pitch) >= Math.abs(AutoConstants.kOffBalanceAngleThresholdDegrees)) {
       double pitchAngleRadians = pitch * (Math.PI / 180.0);
       if (fwd >= 0)
-        fwd = Math.sin(pitchAngleRadians) * 1.5;
+        fwd = Math.sin(pitchAngleRadians) * -1.7;
       // System.out.println("test1");
     } else {
       fwd = 0;
@@ -185,7 +186,7 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     // System.out.println("test2 fwd:" + fwd + " rot:" + rot);
-    m_drive.arcadeDrive(rot, fwd);
+    m_drive.arcadeDrive(fwd, rot);
     // System.out.println("test3");
 
   }
@@ -350,9 +351,11 @@ public class DriveSubsystem extends SubsystemBase {
     pitchDegrees.setString(String.format("%.2f", this.getPitch()) + " deg");
     rollDegrees.setString(String.format("%.2f", this.getRoll()) + " deg");
 
-    leftEncoderPulseCount.setString(String.format("%.3f", this.getLeftEncoderPosition()) + " p");
-    rightEncoderPulseCount.setString(String.format("%.3f", this.getRightEncoderPosition()) + " p");
-    averageEncoderPulseCount.setString(String.format("%.3f", this.getAverageEncoderDistance()) + " p");
+    leftEncoderPulseCount.setString(String.format("%.3f", this.m_leftEncoder.getPosition()) + " p");
+    rightEncoderPulseCount.setString(String.format("%.3f", this.m_rightEncoder.getPosition()) + " p");
+    averageEncoderPulseCount.setString(String.format("%.3f", 
+      (this.m_leftEncoder.getPosition()
+      + this.m_rightEncoder.getPosition()) / 2) + " p");
 
     leftMotorVoltage.setString(String.format("%.3f", this.m_leftMotorVoltage) + " V");
     rightMotorVoltage.setString(String.format("%.3f", this.m_leftMotorVoltage) + " V");

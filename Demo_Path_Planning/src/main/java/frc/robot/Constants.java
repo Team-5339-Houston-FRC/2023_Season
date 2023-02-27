@@ -20,15 +20,20 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
  */
 public final class Constants {
   public static final class DriveConstants {
-    public static final int kLeftLeadMotorCANID = 1;
-    public static final int kRightLeadMotorCANID = 2;
-    public static final int kLeftFollowMotorCANID = 3;
-    public static final int kRightFollowMotorCANID = 4;
+    public static final int kPneumaticHubCANID = 1;
+    public static final int kLeftLeadMotorCANID = 12;
+    public static final int kRightLeadMotorCANID = 10;
+    public static final int kLeftFollowMotorCANID = 13;
+    public static final int kRightFollowMotorCANID = 11;
+    public static final int kRetractMotorCANID = 21;
+    public static final int kPivotMotorCANID = 20;
 
     public static final boolean kLeftEncoderReversed = false;
     public static final boolean kRightEncoderReversed = true;
+    public static final boolean kPivotMotorEncoderReversed = false;
+    public static final boolean kRetractEncoderReversed = false;
 
-    public static final double kTrackwidthMeters = 0.57589;
+    public static final double kTrackwidthMeters = 0.64679;
     public static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(
         kTrackwidthMeters);
 
@@ -36,14 +41,20 @@ public final class Constants {
     public static final double kWheelDiameterMeters = 0.1524; // 6 inches
     public static final double kGearRatio = 10.71; // 10.71:1 gearing
     public static final double kDPPOffset = 0;
-    public static final double kEncoderDistancePerPulse = (kWheelDiameterMeters * Math.PI)
-        / (double) (kGearRatio / kEncoderCPR) + kDPPOffset;
+    //public static final double kEncoderDistancePerPulse = (kWheelDiameterMeters * Math.PI)
+    //    / (double) (kGearRatio / kEncoderCPR) + kDPPOffset;
+    public static final double kEncoderDistancePerPulse = 0.0445;
 
-    public static final double ksVolts = 0.25775;
-    public static final double kvVoltSecondsPerMeter = 8.0323;
-    public static final double kaVoltSecondsSquaredPerMeter = 1.6576;
+    public static final double ksVolts = 0.23583;
+    public static final double kvVoltSecondsPerMeter = 2.6772;
+    public static final double kaVoltSecondsSquaredPerMeter = 0.41051;
 
-    public static final double kPDriveVel = 0.0020817;
+    public static final double kPDriveVel = 2.9677;
+  }
+
+  public static final class RobotArmConstants {
+    public static final int kMinPressure = 100;
+    public static final int kMaxPressure = 120;
   }
 
   public static final class OIConstants {
